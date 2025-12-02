@@ -9,32 +9,44 @@ class UserController extends ResourceController
 {
     protected $format = 'json';
 
-    public function login()
-    {
-        $model = new UserModel();
-        $request = $this->request->getJSON();
+    public function loginForm()
+{
+    return view('login'); // file view login kamu
+}
 
-        $username = $request->username ?? '';
-        $password = $request->password ?? '';
+public function loginProcess()
+{
+    $username = $this->request->getPost('username');
+    $password = $this->request->getPost('password');
 
-        $user = $model->where('username', $username)->first();
+    $model = new UserModel();
+    $user = $model->where('username', $username)->first();
 
-        if (!$user) {
-            return $this->respond(['status' => 'error', 'message' => 'User tidak ditemukan'], 404);
-        }
-
-        if ($user['password'] !== $password) { // nanti bisa diganti password_verify() kalau pakai hash
-            return $this->respond(['status' => 'error', 'message' => 'Password salah'], 401);
-        }
-
-        return $this->respond([
-            'status' => 'success',
-            'message' => 'Login berhasil',
-            'data' => [
-                'id' => $user['id'],
-                'username' => $user['username'],
-                'role' => $user['role'] ?? 'operator'
-            ]
-        ]);
+    if (!$user) {
+        return redirect()->back()->with('error', 'Username tidak ditemukan');
     }
+
+    if ($user['password'] !== $password) {
+        return redirect()->back()->with('error', 'Password salah');
+    }
+
+    // Set session
+    session()->set([
+        'logged_in' => true,
+        'user_id' => $user['id'],
+        'username' => $user['username'],
+        'role' => $user['role']
+    ]);
+
+    // Redirect sesuai role
+    if ($user['role'] === 'admin') {
+        return redirect()->to('/admin/dashboard');
+    }
+    else if ($user['role'] === 'operator') {
+        return redirect()->to('/operator/select');
+    }
+    else {
+        return redirect()->to('/guest/dashboard');
+    }
+ }
 }

@@ -10,11 +10,7 @@ use CodeIgniter\Controller;
 
 class OperatorController extends Controller
 {
-    public function login()
-    {
-        return view('operator/login');
-    }
-
+    
 public function auth()
 {
     $session = session();
