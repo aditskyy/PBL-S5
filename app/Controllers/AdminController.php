@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Models\JenisLoketModel;
 use App\Models\LoketModel;
 use App\Models\UserModel;
+use App\Models\AntrianModel;
 
 class AdminController extends BaseController
 {
@@ -17,105 +18,95 @@ class AdminController extends BaseController
     // ================================
     // DASHBOARD ADMIN
     // ================================
-    public function dashboard()
-    {
-        // Cek apakah role = admin
-        $session = session();
-        if ($session->get('role') !== 'admin') {
-            return redirect()->to('/login')->with('error', 'Akses ditolak!');
-        }
-
-        $jenisModel = new JenisLoketModel();
-        $loketModel = new LoketModel();
-        $userModel  = new UserModel();
-
-        $data = [
-            'countJenis'    => $jenisModel->countAllResults(),
-            'countLoket'    => $loketModel->countAllResults(),
-            'countOperator' => $userModel->where('role', 'operator')->countAllResults(),
-        ];
-
-        return view('admin/admin_dashboard', $data);
-    }
-
-    // ================================
-    // HALAMAN DAFTAR JENIS LAYANAN
-    // ================================
-    public function jenis()
-    {
-        $session = session();
-        if ($session->get('role') !== 'admin') {
-            return redirect()->to('/login')->with('error', 'Akses ditolak!');
-        }
-
-        $model = new JenisLoketModel();
-        $data['jenis'] = $model->findAll();
-
-        return view('admin/jenis/index', $data);
-    }
-
-    public function jenisTambah()
-{
-    return view('admin/jenis/add');
-}
-
-public function jenisSave()
-{
-    $model = new JenisLoketModel();
-    $model->insert([
-        'nama_jenis' => $this->request->getPost('nama_jenis')
-    ]);
-
-    return redirect()->to('/admin/jenis')->with('success', 'Jenis layanan ditambahkan');
-}
-
-public function jenisEdit($id)
-{
-    $model = new JenisLoketModel();
-
-    $data['jenis'] = $model->find($id);
-
-    return view('admin/jenis/edit', $data);
-}
-
-public function jenisUpdate($id)
-{
-    $model = new JenisLoketModel();
-
-    $model->update($id, [
-        'nama_jenis' => $this->request->getPost('nama_jenis')
-    ]);
-
-    return redirect()->to('/admin/jenis')->with('success', 'Jenis layanan diupdate');
-}
-
-public function JenisDelete($id)
+      public function dashboard()
 {
     $session = session();
     if ($session->get('role') !== 'admin') {
         return redirect()->to('/login')->with('error', 'Akses ditolak!');
     }
 
-    $model = new \App\Models\JenisLoketModel();
+    $jenisModel   = new JenisLoketModel();
+    $loketModel   = new LoketModel();
+    $userModel    = new UserModel();
+    $antrianModel = new AntrianModel();
 
-    // Cek apakah ID valid
-    $loketModel = new \App\Models\LoketModel();
-    $dipakai = $loketModel->where('kode_jenis', $jenis['kode_jenis'])->countAllResults();
+    // Summary
+    $data['countJenis']    = $jenisModel->countAllResults();
+    $data['countLoket']    = $loketModel->countAllResults();
+    $data['countOperator'] = $userModel->where('role', 'operator')->countAllResults();
 
-    if ($dipakai > 0) {
-    return redirect()->to('/admin/jenis')
-        ->with('error', 'Tidak dapat menghapus! Jenis ini digunakan oleh ' . $dipakai . ' loket.');
-}
+    $loketList = $loketModel->findAll();
+    $today = date('Y-m-d');
 
-    $jenis = $model->find($id);
-    if (!$jenis) {
-        return redirect()->to('/admin/jenis')->with('error', 'Jenis layanan tidak ditemukan.');
+    foreach ($loketList as &$l) {
+
+        // Total antrian hari ini
+        $l['total_antrian'] = $antrianModel
+            ->where('kode_loket', $l['kode_loket'])
+            ->where('DATE(tanggal)', $today)
+            ->countAllResults();
+
+        // Nomor terakhir hari ini
+        $last = $antrianModel
+            ->where('kode_loket', $l['kode_loket'])
+            ->where('DATE(tanggal)', $today)
+            ->orderBy('id_antrian', 'DESC')
+            ->first();
+
+        $l['last_nomor'] = $last['nomor'] ?? '-';
+
+        // Status loket
+        if (isset($l['status'])) {
+            $l['status'] = strtolower($l['status']);
+        } elseif (isset($l['aktif'])) {
+            $l['status'] = ($l['aktif'] == 1) ? 'buka' : 'tutup';
+        } else {
+            $l['status'] = 'tutup';
+        }
+    }
+    unset($l);
+
+    $data['loketList'] = $loketList;
+
+    // ============================================
+    // 🔵 GRAFIK 1: Total Antrian 7 Hari Terakhir
+    // ============================================
+    $chartDates = [];
+    $chartTotals = [];
+
+    for ($i = 6; $i >= 0; $i--) {
+        $day = date('Y-m-d', strtotime("-{$i} days"));
+        $chartDates[] = date('d M', strtotime($day));
+
+        $total = $antrianModel
+            ->where('DATE(tanggal)', $day)
+            ->countAllResults();
+
+        $chartTotals[] = $total;
     }
 
-    // Hapus data
-    $model->delete($id);
+    $data['chartDates']  = json_encode($chartDates);
+    $data['chartTotals'] = json_encode($chartTotals);
 
-    return redirect()->to('/admin/jenis')->with('success', 'Jenis layanan berhasil dihapus!');
+    // ============================================
+    // 🔴 GRAFIK 2: Total Antrian per Loket Hari Ini
+    // ============================================
+    $loketNames = [];
+    $loketTotals = [];
+
+    foreach ($loketList as $lk) {
+        $loketNames[] = $lk['nama_loket'];
+
+        $loketTotals[] = $antrianModel
+            ->where('kode_loket', $lk['kode_loket'])
+            ->where('DATE(tanggal)', $today)
+            ->countAllResults();
+    }
+
+    $data['loketNames']  = json_encode($loketNames);
+    $data['loketTotals'] = json_encode($loketTotals);
+
+    return view('admin/Dashboard', $data);
 }
 
     // ================================
