@@ -55,27 +55,21 @@ $routes->post('api/operator/resetAntrian', 'Api\Operator::resetAntrian');
 $routes->get('api/loket/byJenis/(:segment)', 'Api\LoketController::byJenis/$1');
 
 // Admin
-//$routes->get('/admin/dashboard', 'AdminController::dashboard');
-//$routes->get('/admin/jenis', 'AdminController::jenis');
-$routes->get('/logout', 'AdminController::logout');
-
+$routes->get('/logout', 'Admin\AdminController::logout');
 $routes->group('admin', function($routes) {
-
-    $routes->get('dashboard', 'AdminController::dashboard');
-
-    // Jenis Layanan
-    $routes->get('jenis', 'AdminController::jenis');
-    $routes->get('jenis/tambah', 'AdminController::jenisTambah');
-    $routes->post('jenis/save', 'AdminController::jenisSave');
-    $routes->get('jenis/edit/(:num)', 'AdminController::jenisEdit/$1');
-    $routes->post('jenis/update/(:num)', 'AdminController::jenisUpdate/$1');
-    $routes->get('jenis/delete/(:num)', 'AdminController::jenisDelete/$1');
-
-    // Loket
-    $routes->get('loket', 'AdminController::loket');
-    
-    // Users
-    $routes->get('users', 'AdminController::users');
-
+$routes->get('dashboard', 'Admin\AdminController::dashboard');
 });
+
+// Jenis Loket
+$routes->group('admin/jenisLoket', ['filter' => 'auth'], function($routes) {
+    $routes->get('/', 'Admin\JenisLoketController::Index');
+    $routes->get('create', 'Admin\JenisLoketController::create');
+    $routes->post('store', 'Admin\JenisLoketController::store');
+    $routes->get('edit/(:segment)', 'Admin\JenisLoketController::edit/$1');
+    $routes->post('update/(:segment)', 'Admin\JenisLoketController::update/$1');
+    $routes->get('delete/(:segment)', 'Admin\JenisLoketController::delete/$1');
+});
+
+
+
 

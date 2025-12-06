@@ -12,7 +12,7 @@
 
         /* Sidebar */
         .sidebar {
-            width: 240px;
+            width: 250px;
             height: 100vh;
             background: #1d2939;
             color: #fff;
@@ -71,6 +71,7 @@
 
         <a href="/admin/jenis">⚙ Konfigurasi Aplikasi</a>
         <a href="/admin/user">👤 Manajemen User</a>
+        <a href="/admin/jenisLoket">📋 Manajemen Jenis Loket</a>
         <a href="/logout">🚪 Logout</a>
     </div>
 
