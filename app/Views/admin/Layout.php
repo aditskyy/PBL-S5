@@ -69,9 +69,10 @@
 
         <p class="mt-4 mb-1 text-secondary">Utility</p>
 
-        <a href="/admin/jenis">⚙ Konfigurasi Aplikasi</a>
-        <a href="/admin/user">👤 Manajemen User</a>
-        <a href="/admin/jenisLoket">📋 Manajemen Jenis Loket</a>
+        <a href="<?= base_url('admin/users') ?>">👤 Manajemen User</a>
+        <a href="<?= base_url('admin/jenisLoket') ?>">📋 Manajemen Jenis Loket</a>
+        <a href="<?= base_url('admin/loket') ?>">🏢 Manajemen Loket</a>
+
         <a href="/logout">🚪 Logout</a>
     </div>
 

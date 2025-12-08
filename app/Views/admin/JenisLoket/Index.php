@@ -3,7 +3,7 @@
 
 <h2 class="mb-4">Manajemen Jenis Loket</h2>
 
-<a href="/admin/jenisLoket/create" class="btn btn-primary mb-3">+ Tambah Jenis Loket</a>
+<a href="/admin/jenisLoket/create" class="btn btn-primary mb-3">Tambah Jenis Loket</a>
 
 <?php if(session()->getFlashdata('success')): ?>
     <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>

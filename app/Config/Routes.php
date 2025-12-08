@@ -60,7 +60,7 @@ $routes->group('admin', function($routes) {
 $routes->get('dashboard', 'Admin\AdminController::dashboard');
 });
 
-// Jenis Loket
+// Manajemen Jenis Loket 
 $routes->group('admin/jenisLoket', ['filter' => 'auth'], function($routes) {
     $routes->get('/', 'Admin\JenisLoketController::Index');
     $routes->get('create', 'Admin\JenisLoketController::create');
@@ -69,6 +69,27 @@ $routes->group('admin/jenisLoket', ['filter' => 'auth'], function($routes) {
     $routes->post('update/(:segment)', 'Admin\JenisLoketController::update/$1');
     $routes->get('delete/(:segment)', 'Admin\JenisLoketController::delete/$1');
 });
+
+// Manajemen Users 
+$routes->group('admin', ['filter' => 'auth'],  function($routes) {
+    $routes->get('users', 'Admin\UsersController::Index');
+    $routes->get('users/create', 'Admin\UsersController::create');
+    $routes->post('users/store', 'Admin\UsersController::store');
+    $routes->get('users/edit/(:num)', 'Admin\UsersController::edit/$1');
+    $routes->post('users/update/(:num)', 'Admin\UsersController::update/$1');
+    $routes->get('users/delete/(:num)', 'Admin\UsersController::delete/$1');
+});
+
+// Manajemen Loket
+$routes->group('admin', ['filter' => 'auth'], function($routes) {
+    $routes->get('loket', 'Admin\LoketController::Index');
+    $routes->get('loket/create', 'Admin\LoketController::create');
+    $routes->post('loket/store', 'Admin\LoketController::store');
+    $routes->get('loket/edit/(:segment)', 'Admin\LoketController::edit/$1');
+    $routes->post('loket/update/(:segment)', 'Admin\LoketController::update/$1');
+    $routes->get('loket/delete/(:segment)', 'Admin\LoketController::delete/$1');
+});
+
 
 
 
