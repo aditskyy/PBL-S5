@@ -90,6 +90,13 @@ $routes->group('admin', ['filter' => 'auth'], function($routes) {
     $routes->get('loket/delete/(:segment)', 'Admin\LoketController::delete/$1');
 });
 
+// Manajemen Antrian
+$routes->group('admin', ['filter' => 'auth'], function($routes) {
+    $routes->get('antrian', 'Admin\AntrianController::index');
+    $routes->get('antrian/delete/(:num)', 'Admin\AntrianController::delete/$1');
+});
+
+
 
 
 
