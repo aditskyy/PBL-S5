@@ -28,7 +28,7 @@ class Auth extends ResourceController
             'status' => 'success',
             'message' => 'Login berhasil',
             'data' => [
-                'user_id' => $user['id_user'],
+                'user_id' => $user['id'],
                 'username' => $user['username'],
                 'kode_loket' => $user['kode_loket'],
                 'kode_jenis' => $user['kode_jenis']

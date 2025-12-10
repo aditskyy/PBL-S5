@@ -5,6 +5,7 @@ namespace App\Controllers;
 use App\Models\UserModel;
 use App\Models\LoketModel;
 use App\Models\AntrianModel;
+use App\Models\LogAntrianModel;
 use App\Models\JenisLoketModel;
 use CodeIgniter\Controller;
 
@@ -27,7 +28,8 @@ public function auth()
         $session->set([
             'logged_in' => true,
             'username' => $user['username'],
-            'kode_jenis' => $user['kode_jenis'], // A / B / C
+            'user_id' => $user['id'],  
+            //'kode_jenis' => $user['kode_jenis'], 
         ]);
 
          return redirect()->to('/operator/select');
@@ -139,17 +141,27 @@ public function dashboard()
 public function panggilSelanjutnya()
 {
     $session = session();
+
+    if (!$session->get('logged_in') || !$session->get('kode_jenis')) {
+        return redirect()->to('/operator');
+    }
+
     $kodeJenis = $session->get('kode_jenis');
+    $userId    = $session->get('user_id');
 
     $antrianModel = new \App\Models\AntrianModel();
+    $logModel     = new \App\Models\LogAntrianModel();
 
-    // Reset antrian yang sedang dipanggil jadi "Selesai"
+    // Tandai yang sedang dipanggil jadi selesai
     $antrianModel->where('kode_jenis', $kodeJenis)
                  ->where('status', 'Dipanggil')
-                 ->set(['status' => 'Selesai', 'updated_at' => date('Y-m-d H:i:s')])
+                 ->set([
+                     'status' => 'Selesai',
+                     'updated_at' => date('Y-m-d H:i:s')
+                 ])
                  ->update();
 
-    // Ambil antrian berikutnya yang masih menunggu
+    // Ambil antrian berikut
     $antrianBerikut = $antrianModel
         ->where('kode_jenis', $kodeJenis)
         ->where('status', 'Menunggu')
@@ -157,15 +169,25 @@ public function panggilSelanjutnya()
         ->first();
 
     if ($antrianBerikut) {
-        // Update jadi "Dipanggil"
+
+        // Update jadi dipanggil
         $antrianModel->update($antrianBerikut['id_antrian'], [
             'status' => 'Dipanggil',
             'updated_at' => date('Y-m-d H:i:s')
+        ]);
+
+        // Insert ke log
+        $logModel->insert([
+            'id_antrian' => $antrianBerikut['id_antrian'],
+            'aksi'       => 'PANGGIL',
+            'user_id'    => $userId,
+            'waktu'      => date('Y-m-d H:i:s')
         ]);
     }
 
     return redirect()->to('/operator/dashboard');
 }
+
 
 public function panggilUlang()
 {
@@ -177,13 +199,33 @@ public function selesai()
 {
     $session = session();
     $kodeJenis = $session->get('kode_jenis');
-    $antrianModel = new \App\Models\AntrianModel();
+    $userId = $session->get('user_id');
 
-    // Ubah status antrian yang sedang dipanggil menjadi selesai
-    $antrianModel->where('kode_jenis', $kodeJenis)
-                 ->where('status', 'Dipanggil')
-                 ->set(['status' => 'Selesai', 'updated_at' => date('Y-m-d H:i:s')])
-                 ->update();
+    $antrianModel = new \App\Models\AntrianModel();
+    $logModel = new \App\Models\LogAntrianModel();
+
+    // Ambil antrian yang sedang dipanggil
+    $antrianDipanggil = $antrianModel
+        ->where('kode_jenis', $kodeJenis)
+        ->where('status', 'Dipanggil')
+        ->first();
+
+    if ($antrianDipanggil) {
+
+        // Update jadi selesai
+        $antrianModel->update($antrianDipanggil['id_antrian'], [
+            'status' => 'Selesai',
+            'updated_at' => date('Y-m-d H:i:s')
+        ]);
+
+        // Log
+        $logModel->insert([
+            'id_antrian' => $antrianDipanggil['id_antrian'],
+            'aksi'       => 'SELESAI',
+            'user_id'    => $userId,
+            'waktu'      => date('Y-m-d H:i:s')
+        ]);
+    }
 
     return redirect()->to('/operator/dashboard');
 }

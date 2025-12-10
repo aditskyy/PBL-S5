@@ -73,6 +73,7 @@
         <a href="<?= base_url('admin/jenisLoket') ?>">📋 Manajemen Jenis Loket</a>
         <a href="<?= base_url('admin/loket') ?>">🏢 Manajemen Loket</a>
         <a href="<?= base_url('admin/antrian') ?>">🎟️ Manajemen Antrian</a>
+        <a href="<?= base_url('admin/log-antrian') ?>">📜 Log Antrian</a>
 
 
         <a href="/logout">🚪 Logout</a>

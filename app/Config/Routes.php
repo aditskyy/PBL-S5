@@ -96,6 +96,13 @@ $routes->group('admin', ['filter' => 'auth'], function($routes) {
     $routes->get('antrian/delete/(:num)', 'Admin\AntrianController::delete/$1');
 });
 
+// Log Antrian 
+$routes->group('admin', ['namespace' => 'App\Controllers\Admin'], function($routes) {
+    $routes->get('log-antrian', 'LogAntrianController::index');
+    $routes->post('log-antrian/filter', 'LogAntrianController::filter');
+    $routes->get('log-antrian/reset', 'LogAntrianController::reset');
+});
+
 
 
 
